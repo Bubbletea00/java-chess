@@ -22,8 +22,8 @@ public class SpriteManager {
             for(String piece : pieces){
                 String name = color + "_" + piece;
 
-                System.out.println("name: " + "/assets/" + name + ".png");
-                System.out.println("getClass().getResource(\"/assets/\" + name + \".png\") = " + getClass().getResource("/assets/" + name + ".png"));
+//                System.out.println("name: " + "/assets/" + name + ".png");
+//                System.out.println("getClass().getResource(\"/assets/\" + name + \".png\") = " + getClass().getResource("/assets/" + name + ".png"));
 
                 ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/assets/" + name + ".png")));
                 Image scaled = icon.getImage().getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING);

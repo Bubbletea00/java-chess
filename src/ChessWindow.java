@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 
 public class ChessWindow {
@@ -68,6 +70,21 @@ public class ChessWindow {
                     square.setBackground(COLOR_LIGHT_SQUARE); // light
                 else
                     square.setBackground(COLOR_DARK_SQUARE);   // dark
+
+
+                //TODO Ich hasse drag and drop
+
+//                square.setTransferHandler(new TransferHandler("icon"));
+//                square.addMouseListener(new MouseAdapter() {
+//                    @Override
+//                    public void mousePressed(MouseEvent e) {
+//                        JButton button = (JButton) e.getSource();
+//                        if (button.getIcon() != null){
+//                            TransferHandler handler = button.getTransferHandler();
+//                            handler.exportAsDrag(button, e, TransferHandler.MOVE);
+//                        }
+//                    }
+//                });
 
                 boardButtons[file][row] = square;
                 board.add(square);
