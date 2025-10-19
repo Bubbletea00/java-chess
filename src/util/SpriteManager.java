@@ -1,0 +1,64 @@
+package util;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+public class SpriteManager {
+    private final Map<String, Image> sprites = new HashMap<>();
+
+    private int scaling = 64;
+    
+    public SpriteManager(){
+        loadSprites();
+    }
+
+    public SpriteManager(int scaling){
+        this.scaling = scaling;
+        loadSprites();
+    }
+
+    private void loadSprites() {
+        //todo replace Sting arrays with enums?
+        String[] colors = {"white", "black"};
+        String[] pieces = {"bishop", "king", "knight", "pawn", "queen", "rook"};
+
+        for(String color : colors){
+            for(String piece : pieces){
+                String name = color + "_" + piece;
+
+
+//                ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/res/assets/" + name + ".png")));
+//                Image scaled = icon.getImage().getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING);
+
+                try {
+                    BufferedImage image = ImageIO.read(new FileInputStream("res/assets" + name + ".png"));
+                    sprites.put(name, image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
+
+                } catch (Exception e){
+                    System.out.println("Error loading sprite: " + name);
+                }
+
+
+
+            }
+        }
+    }
+
+    public Image get(String name){
+        return sprites.get(name);
+    }
+
+    public int getScaling(){
+        return scaling;
+    }
+
+    public void setScaling(int scaling){
+        this.scaling = scaling;
+    }
+}
+

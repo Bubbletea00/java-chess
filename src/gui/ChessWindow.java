@@ -1,7 +1,12 @@
+package gui;
+
+import util.SpriteManager;
+
+import model.Board;
+import model.Pieces;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 
 public class ChessWindow {
@@ -107,7 +112,7 @@ public class ChessWindow {
                 }
 
                 String key = piece.name().toLowerCase();
-                ImageIcon icon = spriteManager.get(key);
+                ImageIcon icon =  new ImageIcon(spriteManager.get(key)) ;
 
                 square.setIcon(icon);
 
