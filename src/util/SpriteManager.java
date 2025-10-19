@@ -30,17 +30,15 @@ public class SpriteManager {
         for(String color : colors){
             for(String piece : pieces){
                 String name = color + "_" + piece;
+                String path = "res/assets/" + name + ".png";
 
-
-//                ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/res/assets/" + name + ".png")));
-//                Image scaled = icon.getImage().getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING);
 
                 try {
-                    BufferedImage image = ImageIO.read(new FileInputStream("res/assets" + name + ".png"));
+                    BufferedImage image = ImageIO.read(new FileInputStream(path));
                     sprites.put(name, image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
 
                 } catch (Exception e){
-                    System.out.println("Error loading sprite: " + name);
+                    System.out.println("Error loading sprite: " + name + " at path: " + path);
                 }
 
 
