@@ -38,7 +38,6 @@ public class ChessWindow extends JFrame{
 
 
         setupFrame();
-//        initWindow();
     }
 
     private void setupFrame() {
@@ -58,6 +57,7 @@ public class ChessWindow extends JFrame{
         setVisible(true);
     }
 
+/*
     private void initWindow() {
 
 
@@ -75,6 +75,7 @@ public class ChessWindow extends JFrame{
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
+*/
 
     private void initRightPanel() {
         rightPanel.setPreferredSize(new Dimension(400, 800));
@@ -87,7 +88,7 @@ public class ChessWindow extends JFrame{
         rightPanel.add(placeholder, BorderLayout.CENTER);
     }
 
-    private void createBoardSquares() {
+/*    private void createBoardSquares() {
         //TODO file and rank numbers and letters
         for (int file = 0; file < 8; file++) {
             for (int row = 0; row < 8; row++) {
@@ -104,19 +105,6 @@ public class ChessWindow extends JFrame{
                     square.setBackground(COLOR_DARK_SQUARE);   // dark
 
 
-                //TODO Ich hasse drag and drop
-
-//                square.setTransferHandler(new TransferHandler("icon"));
-//                square.addMouseListener(new MouseAdapter() {
-//                    @Override
-//                    public void mousePressed(MouseEvent e) {
-//                        JButton button = (JButton) e.getSource();
-//                        if (button.getIcon() != null){
-//                            TransferHandler handler = button.getTransferHandler();
-//                            handler.exportAsDrag(button, e, TransferHandler.MOVE);
-//                        }
-//                    }
-//                });
 
                 boardButtons[file][row] = square;
                 board.add(square);
@@ -144,7 +132,5 @@ public class ChessWindow extends JFrame{
 
             }
         }
-
-
-    }
+    }*/
 }
