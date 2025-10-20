@@ -4,7 +4,6 @@ import gui.Sprite;
 import model.Pieces;
 
 import javax.imageio.ImageIO;
-import javax.imageio.stream.FileImageInputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -16,7 +15,7 @@ import java.util.Map;
 
 public class SpriteManager {
     private final Map<Pieces, Sprite> sprites = new HashMap<>();
-    private final Map<Pieces, Icon> pieceIcons = new HashMap<>();
+    private final Map<Pieces, ImageIcon> pieceIcons = new HashMap<>();
 
     private int scaling = 64;
     
@@ -82,7 +81,7 @@ public class SpriteManager {
 
             try{
                 BufferedImage image = ImageIO.read(new File(path));
-                Icon icon = new ImageIcon(image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
+                ImageIcon icon = new ImageIcon(image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
 //                System.out.println("loaded icon for " + piece);
                 pieceIcons.put(piece, icon);
             } catch (IOException e) {
@@ -117,7 +116,7 @@ public class SpriteManager {
         return getSprite(piece);
     }
 
-    public Icon getIcon(Pieces piece){
+    public ImageIcon getIcon(Pieces piece){
         return pieceIcons.get(piece);
     }
 
