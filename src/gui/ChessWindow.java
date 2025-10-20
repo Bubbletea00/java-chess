@@ -138,8 +138,7 @@ public class ChessWindow extends JFrame{
                     continue;
                 }
 
-                String key = piece.name().toLowerCase();
-                ImageIcon icon =  new ImageIcon(spriteManager.get(key)) ;
+                ImageIcon icon =  new ImageIcon(spriteManager.get(piece)) ;
 
                 square.setIcon(icon);
 

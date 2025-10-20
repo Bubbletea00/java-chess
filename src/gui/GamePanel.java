@@ -2,6 +2,7 @@ package gui;
 
 import model.Board;
 import model.Pieces;
+import util.SpriteManager;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,10 +33,14 @@ public class GamePanel extends JPanel {
     }
 
     private void assignAllSprites(Board board){
+        SpriteManager spriteManager = new SpriteManager();
+
         Pieces[][] layout = board.getBoard();
         for (int file = 0; file < 8; file++) {
             for (int rank = 0; rank < 8; rank++) {
                 squareButtons[file][rank].setPiece(layout[rank][file]);
+//                System.out.println("[" + file + "," + rank + "]" + layout[rank][file]);
+                squareButtons[file][rank].setIcon(spriteManager.getIcon(layout[rank][file]));
             }
         }
     }
