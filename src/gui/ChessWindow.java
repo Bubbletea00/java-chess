@@ -9,32 +9,56 @@ import javax.swing.*;
 import java.awt.*;
 
 
-public class ChessWindow {
+public class ChessWindow extends JFrame{
     int windowWidth = 1200;
     int windowHeight = 800;
+
+    private final GamePanel gamePanel;
 
     Color COLOR_DARK_SQUARE = new Color(181, 136, 99);
     Color COLOR_LIGHT_SQUARE = new Color(240, 217, 181);
     Color COLOR_BACKGROUND = new Color(40,40,40);
 
-    JFrame frame = new JFrame("Chess");
-    JPanel board = new JPanel();
-    JPanel rightPanel = new JPanel();
+    JFrame frame;
+    JPanel board;
+    JPanel rightPanel;
 
     JButton[][] boardButtons = new JButton[8][8];
 
     SpriteManager spriteManager = new SpriteManager();
 
     public ChessWindow() {
-        initWindow();
+
+        gamePanel = new GamePanel();
+
+        frame = new JFrame("Chess");
+        board = new JPanel();
+        rightPanel = new JPanel();
+
+
+
+        setupFrame();
+//        initWindow();
+    }
+
+    private void setupFrame() {
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(windowWidth, windowHeight));
+        getContentPane().setBackground(COLOR_BACKGROUND);
+        setResizable(false);
+
+        initRightPanel();
+
+        add(gamePanel, BorderLayout.WEST);
+        add(rightPanel, BorderLayout.CENTER);
+
+        pack();
+        setLocationRelativeTo(null);
+        setVisible(true);
     }
 
     private void initWindow() {
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
-        frame.setPreferredSize(new Dimension(windowWidth, windowHeight));
-        frame.getContentPane().setBackground(COLOR_BACKGROUND);
-        frame.setResizable(false);
 
 
         board.setLayout(new GridLayout(8, 8));
@@ -42,15 +66,7 @@ public class ChessWindow {
         createBoardSquares();
         frame.add(board, BorderLayout.WEST);
 
-
-
-        rightPanel.setPreferredSize(new Dimension(400, 800));
-        rightPanel.setBackground(COLOR_BACKGROUND);
-        rightPanel.setLayout(new BorderLayout());
-
-        JLabel placeholder = new JLabel("Game History Area", SwingConstants.CENTER);
-        placeholder.setForeground(Color.LIGHT_GRAY);
-        rightPanel.add(placeholder, BorderLayout.CENTER);
+        initRightPanel();
 
         frame.add(rightPanel, BorderLayout.CENTER);
 
@@ -58,6 +74,17 @@ public class ChessWindow {
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    private void initRightPanel() {
+        rightPanel.setPreferredSize(new Dimension(400, 800));
+        rightPanel.setBackground(COLOR_BACKGROUND);
+        rightPanel.setLayout(new BorderLayout());
+
+        JLabel placeholder = new JLabel("Game History Area", SwingConstants.CENTER);
+        placeholder.setForeground(Color.LIGHT_GRAY);
+
+        rightPanel.add(placeholder, BorderLayout.CENTER);
     }
 
     private void createBoardSquares() {

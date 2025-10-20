@@ -1,7 +1,8 @@
 package util;
 
+import gui.Sprite;
+
 import javax.imageio.ImageIO;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.FileInputStream;
@@ -23,7 +24,6 @@ public class SpriteManager {
     }
 
     private void loadSprites() {
-        //todo replace Sting arrays with enums?
         String[] colors = {"white", "black"};
         String[] pieces = {"bishop", "king", "knight", "pawn", "queen", "rook"};
 
@@ -34,7 +34,7 @@ public class SpriteManager {
 
 
                 try {
-                    BufferedImage image = ImageIO.read(new FileInputStream(path));
+                    BufferedImage image =  ImageIO.read(new FileInputStream(path));
                     sprites.put(name, image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
 
                 } catch (Exception e){
