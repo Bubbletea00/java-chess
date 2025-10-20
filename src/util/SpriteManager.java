@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SpriteManager {
-    private final Map<String, Image> sprites = new HashMap<>();
+    private final Map<String, Sprite> sprites = new HashMap<>();
 
     private int scaling = 64;
     
@@ -35,8 +35,9 @@ public class SpriteManager {
 
                 try {
                     BufferedImage image =  ImageIO.read(new FileInputStream(path));
-                    sprites.put(name, image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
-
+                    Sprite sprite = scaledImage(image, scaling);
+//                    sprites.put(name, image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
+                    sprites.put(name, sprite);
                 } catch (Exception e){
                     System.out.println("Error loading sprite: " + name + " at path: " + path);
                 }
@@ -45,6 +46,21 @@ public class SpriteManager {
 
             }
         }
+    }
+
+    private Sprite scaledImage(BufferedImage image, int scaling) {
+        BufferedImage scaled = new BufferedImage(scaling, scaling, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = scaled.createGraphics();
+
+        // Enable high-quality rendering
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2d.drawImage(image, 0, 0, scaling, scaling, null);
+        g2d.dispose();
+
+        return new Sprite(scaled);
     }
 
     public Image get(String name){
