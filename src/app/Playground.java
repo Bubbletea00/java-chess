@@ -29,6 +29,7 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
 
         JLabel label1 = new JLabel(icon1);
 
+
         add(label1);
 
         repaint();

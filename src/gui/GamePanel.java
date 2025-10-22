@@ -24,10 +24,10 @@ public class GamePanel extends JPanel {
     }
 
     private void drawBoard() {
-        for (int file = 0; file < 8; file++) {
-            for (int rank = 0; rank < 8; rank++) {
-                squareButtons[file][rank] = new SquareButton(file, rank);
-                this.add(squareButtons[file][rank]);
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                squareButtons[rank][file] = new SquareButton(rank, file);
+                this.add(squareButtons[rank][file]);
             }
         }
     }
@@ -36,11 +36,11 @@ public class GamePanel extends JPanel {
         SpriteManager spriteManager = new SpriteManager();
 
         Pieces[][] layout = board.getBoard();
-        for (int file = 0; file < 8; file++) {
-            for (int rank = 0; rank < 8; rank++) {
-                squareButtons[file][rank].setPiece(layout[rank][file]);
-//                System.out.println("[" + file + "," + rank + "]" + layout[rank][file]);
-                squareButtons[file][rank].setIcon(spriteManager.getIcon(layout[rank][file]));
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                squareButtons[rank][file].setPiece(layout[rank][file]);
+//                System.out.println("[" + rank + "," + file + "]" + layout[rank][file]);
+                squareButtons[rank][file].setIcon(spriteManager.getIcon(layout[rank][file]));
             }
         }
     }
