@@ -4,6 +4,70 @@ import java.util.Arrays;
 
 public class Board {
     private Pieces[][] board = new Pieces[8][8];
+    private boolean shortCastleWhite = false;
+    private boolean longCastleWhite = false;
+    private boolean shortCastleBlack = false;
+    private boolean longCastleBlack = false;
+    private boolean enPassant = false;
+    private int enPassantRank = 0;
+    private int enPassantFile = 0;
+
+    //getters and setters
+    public boolean isShortCastleWhite() {
+        return shortCastleWhite;
+    }
+
+    public void setShortCastleWhite(boolean shortCastleWhite) {
+        this.shortCastleWhite = shortCastleWhite;
+    }
+
+    public boolean isLongCastleWhite() {
+        return longCastleWhite;
+    }
+
+    public void setLongCastleWhite(boolean longCastleWhite) {
+        this.longCastleWhite = longCastleWhite;
+    }
+
+    public boolean isShortCastleBlack() {
+        return shortCastleBlack;
+    }
+
+    public void setShortCastleBlack(boolean shortCastleBlack) {
+        this.shortCastleBlack = shortCastleBlack;
+    }
+
+    public boolean isLongCastleBlack() {
+        return longCastleBlack;
+    }
+
+    public void setLongCastleBlack(boolean longCastleBlack) {
+        this.longCastleBlack = longCastleBlack;
+    }
+
+    public boolean isEnPassant() {
+        return enPassant;
+    }
+
+    public void setEnPassant(boolean enPassant) {
+        this.enPassant = enPassant;
+    }
+
+    public int getEnPassantRank() {
+        return enPassantRank;
+    }
+
+    public void setEnPassantRank(int enPassantRank) {
+        this.enPassantRank = enPassantRank;
+    }
+
+    public int getEnPassantFile() {
+        return enPassantFile;
+    }
+
+    public void setEnPassantFile(int enPassantFile) {
+        this.enPassantFile = enPassantFile;
+    }
 
     public Board(){
         setDefaultBoard();

@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Fen {
-    private String fen;
+    protected String fen;
 
     public Fen(){
         this.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -16,6 +16,7 @@ public class Fen {
     }
 
     private boolean getFenValidity(String fen){
+        if(fen == null) return false;
         Pattern pattern = Pattern.compile("^(?:[pnbrqkPNBRQK1-8]+/){7}[pnbrqkPNBRQK1-8]+\\s[bw]\\s(-|K?Q?k?q?)\\s(-|[a-h][36])\\s\\d+\\s\\d+$");
         Matcher matcher = pattern.matcher(fen);
         return matcher.matches();
@@ -40,12 +41,18 @@ public class Fen {
     }
 
     public void setFen(String fen){
+        try {checkFenValidity(fen);}
+        catch (IllegalArgumentException e){
+            System.err.println("Invalid FEN, bonk");
+            return;
+        }
+
         this.fen = fen;
     }
 
 
 
-
+    @Override
     public String toString(){
         return fen;
     }
