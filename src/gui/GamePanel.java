@@ -1,6 +1,7 @@
 package gui;
 
 import model.Board;
+import model.ChessGame;
 import model.Pieces;
 import util.SpriteManager;
 import util.Theme;
@@ -10,8 +11,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public class GamePanel extends JPanel implements MouseListener, MouseMotionListener {
 
@@ -19,44 +19,33 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private Sprite draggedSprite = null;
     private Point dragPosition = null;
     private Point dragSourceSquare = null;
+    private List<Point> legalMoves = null;
 
-    private Map<Point, Pieces> piecePositions = new HashMap<>();
+    private ChessGame game;
     private SpriteManager spriteManager;
     
     private static final int BOARD_SIZE = 8;
     private static final int PANEL_SIZE = 800;
-    private static final int SQUARE_SIZE = PANEL_SIZE / BOARD_SIZE; // 100 pixels
+    private static final int SQUARE_SIZE = PANEL_SIZE / BOARD_SIZE;
+    
+    private static final Color LEGAL_MOVE_HIGHLIGHT = new Color(124, 252, 0, 100);
 
     public GamePanel() {
         this.setBackground(Theme.BACKGROUND);
         this.setPreferredSize(new Dimension(PANEL_SIZE, PANEL_SIZE));
         
-        // Create SpriteManager with correct square size
         this.spriteManager = new SpriteManager(80);
+        this.game = new ChessGame();
         
-        // Remove layout manager - we'll draw everything manually
         this.setLayout(null);
-        
-        assignAllIcons(new Board());
         
         addMouseListener(this);
         addMouseMotionListener(this);
     }
 
-    private void assignAllIcons(Board board){
-        Pieces[][] layout = board.getBoard();
-        for (int rank = 0; rank < BOARD_SIZE; rank++) {
-            for (int file = 0; file < BOARD_SIZE; file++) {
-                if (layout[rank][file] != Pieces.EMPTY) {
-                    piecePositions.put(new Point(rank, file), layout[rank][file]);
-                }
-            }
-        }
-    }
-
     public Sprite getSprite(java.awt.Point point) {
-        Pieces piece = piecePositions.get(point);
-        return piece != null ? spriteManager.getSprite(piece) : null;
+        Pieces piece = game.getBoard().getPieceAt(point.x, point.y);
+        return piece != Pieces.EMPTY ? spriteManager.getSprite(piece) : null;
     }
     
     private void drawCenteredSprite(Graphics2D g2d, Sprite sprite, int squareX, int squareY, int squareSize) {
@@ -65,7 +54,6 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         int spriteWidth = sprite.getWidth();
         int spriteHeight = sprite.getHeight();
         
-        // Calculate centered position
         int x = squareX + (squareSize - spriteWidth) / 2;
         int y = squareY + (squareSize - spriteHeight) / 2;
         
@@ -77,6 +65,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         
+        Board board = game.getBoard();
+        
         // Draw the chessboard squares
         for (int rank = 0; rank < BOARD_SIZE; rank++) {
             for (int file = 0; file < BOARD_SIZE; file++) {
@@ -86,21 +76,35 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
             }
         }
         
-        // Draw all sprites on their squares (except the one being dragged)
-        for (Map.Entry<Point, Pieces> entry : piecePositions.entrySet()) {
-            Point square = entry.getKey();
-            Pieces piece = entry.getValue();
-            
-            // Skip drawing the sprite at its original position if it's being dragged
-            if (dragging && dragSourceSquare != null && square.equals(dragSourceSquare)) {
-                continue;
+        // Highlight legal move squares
+        if (dragging && legalMoves != null) {
+            g2d.setColor(LEGAL_MOVE_HIGHLIGHT);
+            for (Point move : legalMoves) {
+                int x = move.y * SQUARE_SIZE;
+                int y = move.x * SQUARE_SIZE;
+                g2d.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE);
             }
-            
-            Sprite sprite = spriteManager.getSprite(piece);
-            if (sprite != null) {
-                int squareX = square.y * SQUARE_SIZE;
-                int squareY = square.x * SQUARE_SIZE;
-                drawCenteredSprite(g2d, sprite, squareX, squareY, SQUARE_SIZE);
+        }
+        
+        // Draw all sprites on their squares (except the one being dragged)
+        for (int rank = 0; rank < BOARD_SIZE; rank++) {
+            for (int file = 0; file < BOARD_SIZE; file++) {
+                Point square = new Point(rank, file);
+                
+                // Skip drawing the sprite at its original position if it's being dragged
+                if (dragging && square.equals(dragSourceSquare)) {
+                    continue;
+                }
+                
+                Pieces piece = board.getPieceAt(rank, file);
+                if (piece != Pieces.EMPTY) {
+                    Sprite sprite = spriteManager.getSprite(piece);
+                    if (sprite != null) {
+                        int squareX = file * SQUARE_SIZE;
+                        int squareY = rank * SQUARE_SIZE;
+                        drawCenteredSprite(g2d, sprite, squareX, squareY, SQUARE_SIZE);
+                    }
+                }
             }
         }
         
@@ -124,16 +128,22 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         
         if (rank >= 0 && rank < BOARD_SIZE && file >= 0 && file < BOARD_SIZE) {
             Point square = new Point(rank, file);
-            Pieces piece = piecePositions.get(square);
+            Pieces piece = game.getBoard().getPieceAt(rank, file);
             
-            if (piece != null) {
-                Sprite sprite = spriteManager.getSprite(piece);
-                if (sprite != null) {
-                    dragging = true;
-                    draggedSprite = sprite;
-                    dragSourceSquare = square;
-                    dragPosition = e.getPoint();
-                    repaint();
+            if (piece != Pieces.EMPTY) {
+                // Get legal moves for this piece
+                legalMoves = game.getLegalMoves(square);
+                
+                // Only allow dragging if there are legal moves
+                if (!legalMoves.isEmpty()) {
+                    Sprite sprite = spriteManager.getSprite(piece);
+                    if (sprite != null) {
+                        dragging = true;
+                        draggedSprite = sprite;
+                        dragSourceSquare = square;
+                        dragPosition = e.getPoint();
+                        repaint();
+                    }
                 }
             }
         }
@@ -150,21 +160,20 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                 targetFile >= 0 && targetFile < BOARD_SIZE) {
                 Point targetSquare = new Point(targetRank, targetFile);
                 
-                // Get the piece being moved
-                Pieces piece = piecePositions.get(dragSourceSquare);
+                // Try to make the move - only succeeds if legal
+                boolean moveSuccess = game.makeMove(dragSourceSquare, targetSquare);
                 
-                // Remove sprite from source position
-                piecePositions.remove(dragSourceSquare);
-                
-                // Place sprite at target position (will replace any piece there)
-                piecePositions.put(targetSquare, piece);
+                if (!moveSuccess) {
+                    // Illegal move - piece snaps back (do nothing)
+                    System.out.println("Illegal move!");
+                }
             }
-            // If dropped outside, piece stays at original position
             
             dragging = false;
             draggedSprite = null;
             dragPosition = null;
             dragSourceSquare = null;
+            legalMoves = null;
             repaint();
         }
     }
