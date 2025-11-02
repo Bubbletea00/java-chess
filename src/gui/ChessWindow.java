@@ -1,9 +1,5 @@
 package gui;
 
-import util.SpriteManager;
-
-import model.Board;
-import model.Pieces;
 import util.Theme;
 
 import javax.swing.*;
@@ -21,10 +17,6 @@ public class ChessWindow extends JFrame{
     JFrame frame;
     JPanel board;
     JPanel rightPanel;
-
-    JButton[][] boardButtons = new JButton[8][8];
-
-    SpriteManager spriteManager = new SpriteManager();
 
     public ChessWindow() {
 
