@@ -3,22 +3,21 @@ package gui;
 import model.Board;
 import model.Pieces;
 import util.SpriteManager;
+import util.Theme;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class GamePanel extends JPanel {
-    Color COLOR_DARK_SQUARE = new Color(181, 136, 99);
-    Color COLOR_LIGHT_SQUARE = new Color(240, 217, 181);
 
 
     SquareButton[][] squareButtons = new SquareButton[8][8];
 
     public GamePanel() {
-        this.setBackground(Color.darkGray);
+        this.setBackground(Theme.BACKGROUND);
         this.setPreferredSize(new Dimension(800, 800));
 
-        this.setLayout(new GridLayout(8, 8));  // Changed to 8x8 for chess squareButtons
+        this.setLayout(new GridLayout(8, 8));
         drawBoard();
         assignAllSprites(new Board());
     }

@@ -1,6 +1,7 @@
 package gui;
 
 import model.Pieces;
+import util.Theme;
 
 import java.awt.*;
 
@@ -10,8 +11,8 @@ public class SquareButton extends javax.swing.JButton{
     private final int rank;
     private final int file;
 
-    Color COLOR_DARK_SQUARE = new Color(181, 136, 99);
-    Color COLOR_LIGHT_SQUARE = new Color(240, 217, 181);
+    Color COLOR_DARK_SQUARE = Theme.DARK_SQUARE;
+    Color COLOR_LIGHT_SQUARE = Theme.LIGHT_SQUARE;
 
 
     public SquareButton(int rank, int file){
