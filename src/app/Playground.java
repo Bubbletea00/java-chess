@@ -78,7 +78,20 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
     @Override
     public void mouseReleased(MouseEvent e) {
         dragging = false;
+        snapToGrid(e.getPoint().x, e.getPoint().y);
+        
     }
+
+    private void snapToGrid(int posX, int posY) {
+        int gridX = posX / 40;
+        int gridY = posY / 40;
+
+        System.out.println("[" + gridX + "," + gridY + "]");
+        dragRect.setLocation(gridX*40, gridY*40);
+        repaint();
+
+    }
+
 
     @Override
     public void mouseEntered(MouseEvent e) {

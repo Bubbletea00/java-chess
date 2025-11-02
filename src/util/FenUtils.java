@@ -38,7 +38,7 @@ public class FenUtils extends Fen{
         }
         if(name.charAt(0) == 'b'){
             return name.charAt(6);
-        }else throw new IllegalArgumentException("Invalid piece, what the fuck went wrong");
+        }else throw new IllegalArgumentException("Invalid piece, the fuck went wrong");
     }
 
     public void test(){
