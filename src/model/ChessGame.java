@@ -6,10 +6,11 @@ import java.util.List;
 
 public class ChessGame {
     private Board board;
-    private boolean whiteToMove = true;
+    private boolean whiteToMove;
 
     public ChessGame() {
         this.board = new Board();
+        whiteToMove = board.isWhiteTurn();
     }
 
     public Board getBoard() {
@@ -82,8 +83,71 @@ public class ChessGame {
         board.setPieceAt(to.x, to.y, piece);
         board.setPieceAt(from.x, from.y, Pieces.EMPTY);
 
+        // Update states
+        if (board.isEnPassant()) {
+            board.setEnPassant(false);
+            board.setEnPassantFile(-1);
+            board.setEnPassantRank(-1);
+        }
+
+        switch (piece) {
+            case BLACK_KING:
+                board.setLongCastleBlack(false);
+                board.setShortCastleBlack(false);
+                break;
+            case WHITE_KING:
+                board.setLongCastleWhite(false);
+                board.setShortCastleWhite(false);
+                break;
+            case BLACK_ROOK:
+                if (from.x == 0) board.setLongCastleWhite(false);
+                if (from.x == 7) board.setShortCastleBlack(false);
+                break;
+            case WHITE_ROOK:
+                if (from.x == 0) board.setLongCastleBlack(false);
+                if (from.x == 7) board.setShortCastleWhite(false);
+                break;
+            case WHITE_PAWN:
+            case BLACK_PAWN:
+                for (int rankOffset : new int[]{-2, 2}) {
+                    if (from.y + rankOffset == to.y) {
+                        for (int fileOffset : new int[]{-1, 1}) {
+                            if (isValidSquare(from.x + fileOffset, to.y)) {
+                                if (isOpponentPiece(piece, board.getPieceAt(from.x + fileOffset, to.y))) {
+                                    board.setEnPassant(true);
+                                    board.setEnPassantFile(from.x);
+                                    board.setEnPassantRank(to.y + (rankOffset == -2 ? 1 : -1));
+
+                                    System.out.println("en passant [file,rank] = [" + board.getEnPassantFile() + "," + board.getEnPassantRank() + "]");
+                                    //todo fix the en passant ...
+                                }
+                            }
+                        }
+                    }
+                }
+//                if (from.x - to.x == 2 || from.x - to.x == -2) {
+//                    if (isOpponentPiece(piece, board.getPieceAt(to.x + 1, to.y))) {
+//                        board.setEnPassant(true);
+//                        board.setEnPassantFile(to.x + 1);
+//                        board.setEnPassantRank(to.y);
+//                        System.out.println("en passant [file,rank] = [" + board.getEnPassantFile() + "," + board.getEnPassantRank() + "]");
+//                    }
+//                    if (isOpponentPiece(piece, board.getPieceAt(to.x - 1, to.y))) {
+//                        board.setEnPassant(true);
+//                        board.setEnPassantFile(to.x - 1);
+//                        board.setEnPassantRank(to.y);
+//                        System.out.println("en passant [file,rank] = [" + board.getEnPassantFile() + "," + board.getEnPassantRank() + "]");
+//
+//                    }
+//                }
+                break;
+            case null, default:
+                break;
+        }
+
         // Switch turns
         whiteToMove = !whiteToMove;
+        board.setWhiteTurn(whiteToMove);
 
         return true;
     }
@@ -121,6 +185,14 @@ public class ChessGame {
                 if (target != Pieces.EMPTY && isOpponentPiece(piece, target)) {
                     moves.add(new Point(newRank, captureFile));
                 }
+            }
+        }
+
+
+        //en passant
+        if (board.isEnPassant()) {
+            if(isValidSquare(board.getEnPassantRank(),board.getEnPassantFile())){
+                moves.add(new Point(board.getEnPassantRank(), board.getEnPassantFile()));
             }
         }
 
@@ -210,6 +282,7 @@ public class ChessGame {
     private boolean isOpponentPiece(Pieces piece, Pieces target) {
         boolean pieceIsWhite = piece.name().startsWith("WHITE");
         boolean targetIsWhite = target.name().startsWith("WHITE");
+        if (target == Pieces.EMPTY || piece == Pieces.EMPTY) return false;
         return pieceIsWhite != targetIsWhite;
     }
 

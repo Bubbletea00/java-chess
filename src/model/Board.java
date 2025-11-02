@@ -10,69 +10,55 @@ public class Board {
     private boolean longCastleBlack = false;
     private boolean enPassant = false;
     private boolean isWhiteTurn = true;
-    private int enPassantRank = 0;
-    private int enPassantFile = 0;
+    private int enPassantRank = -1;
+    private int enPassantFile = -1;
 
     //getters and setters
     public boolean isWhiteTurn() {
         return isWhiteTurn;
     }
-
     public void setWhiteTurn(boolean whiteTurn) {
         isWhiteTurn = whiteTurn;
     }
     public boolean isShortCastleWhite() {
         return shortCastleWhite;
     }
-
     public void setShortCastleWhite(boolean shortCastleWhite) {
         this.shortCastleWhite = shortCastleWhite;
     }
-
     public boolean isLongCastleWhite() {
         return longCastleWhite;
     }
-
     public void setLongCastleWhite(boolean longCastleWhite) {
         this.longCastleWhite = longCastleWhite;
     }
-
     public boolean isShortCastleBlack() {
         return shortCastleBlack;
     }
-
     public void setShortCastleBlack(boolean shortCastleBlack) {
         this.shortCastleBlack = shortCastleBlack;
     }
-
     public boolean isLongCastleBlack() {
         return longCastleBlack;
     }
-
     public void setLongCastleBlack(boolean longCastleBlack) {
         this.longCastleBlack = longCastleBlack;
     }
-
     public boolean isEnPassant() {
         return enPassant;
     }
-
     public void setEnPassant(boolean enPassant) {
         this.enPassant = enPassant;
     }
-
     public int getEnPassantRank() {
         return enPassantRank;
     }
-
     public void setEnPassantRank(int enPassantRank) {
         this.enPassantRank = enPassantRank;
     }
-
     public int getEnPassantFile() {
         return enPassantFile;
     }
-
     public void setEnPassantFile(int enPassantFile) {
         this.enPassantFile = enPassantFile;
     }
@@ -130,11 +116,6 @@ public class Board {
 
     public void setPieceAt(int rank, int file, Pieces piece){
         board[rank][file] = piece;
-    }
-
-    public void movePiece(int fromRank, int fromFile, int toRank, int toFile) {
-        board[toRank][toFile] = board[fromRank][fromFile];
-        board[fromRank][fromFile] = Pieces.EMPTY;
     }
 
 
