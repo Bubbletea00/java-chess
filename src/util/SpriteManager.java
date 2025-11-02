@@ -41,7 +41,7 @@ public class SpriteManager {
                 BufferedImage image =  ImageIO.read(new FileInputStream(path));
                 Sprite sprite = scaledImage(image, scaling);
 //                    sprites.put(name, image.getScaledInstance(scaling, scaling, Image.SCALE_AREA_AVERAGING));
-                System.out.println("loaded sprite for " + piece);
+//                System.out.println("loaded sprite for " + piece);
                 sprites.put(piece, sprite);
             } catch (Exception e){
                 System.err.println("Error loading sprite: " + name + " at path: " + path);

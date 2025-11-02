@@ -1,22 +1,22 @@
 package app;
 
 
+import gui.Sprite;
 import model.Pieces;
 import util.SpriteManager;
 
 import javax.swing.*;
-import javax.swing.event.MenuDragMouseListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.ImagingOpException;
 
 public class Playground extends JPanel implements MouseListener, MouseMotionListener {
     public Playground() {
         initUI();
     }
+
+    private Sprite sprite;
 
     private void initUI() {
         SpriteManager sm = new SpriteManager();
@@ -25,19 +25,21 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
 
         setSize(400, 400);
 
-        ImageIcon icon1 = sm.getIcon(Pieces.WHITE_PAWN);
+//        ImageIcon icon1 = sm.getIcon(Pieces.WHITE_PAWN);
+//        JLabel label1 = new JLabel(icon1);
+//        add(label1);
 
-        JLabel label1 = new JLabel(icon1);
-
-
-        add(label1);
+        sprite = sm.getSprite(Pieces.WHITE_PAWN);
 
         repaint();
     }
 
 
 
-    private Rectangle dragRect = new Rectangle(40,40,40,40);
+    private int spriteX = 60;
+    private int spriteY = 60;
+    private final int spriteWidth = 60;
+    private final int spriteHeight = 60;
 
     private boolean dragging = false;
 
@@ -46,8 +48,9 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
     public void paintComponent(Graphics g) {
 
             super.paintComponent(g);
-            g.setColor(Color.BLACK);
-            g.fillRect(dragRect.x, dragRect.y, dragRect.width, dragRect.height);
+            if (sprite != null) {
+                g.drawImage(sprite, spriteX, spriteY, spriteWidth, spriteHeight, null);
+            }
 
     }
 
@@ -70,7 +73,8 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if (dragRect.contains(e.getPoint())) {
+        if (e.getX() >= spriteX && e.getX() <= spriteX + spriteWidth &&
+            e.getY() >= spriteY && e.getY() <= spriteY + spriteHeight) {
             dragging = true;
         }
     }
@@ -87,7 +91,8 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
         int gridY = posY / 40;
 
         System.out.println("[" + gridX + "," + gridY + "]");
-        dragRect.setLocation(gridX*40, gridY*40);
+        spriteX = gridX * 40;
+        spriteY = gridY * 40;
         repaint();
 
     }
@@ -104,7 +109,8 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
     @Override
     public void mouseDragged(MouseEvent e) {
         if (dragging) {
-            dragRect.setLocation(e.getX()-20, e.getY()-20);
+            spriteX = e.getX() - 20;
+            spriteY = e.getY() - 20;
             repaint();
         }
     }
