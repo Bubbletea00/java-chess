@@ -10,7 +10,7 @@ public class SquareButton extends javax.swing.JButton{
     private Pieces piece;
     private final int rank;
     private final int file;
-    private Sprite sprite;
+
 
     Color COLOR_DARK_SQUARE = Theme.DARK_SQUARE;
     Color COLOR_LIGHT_SQUARE = Theme.LIGHT_SQUARE;
@@ -49,16 +49,5 @@ public class SquareButton extends javax.swing.JButton{
         return file;
     }
 
-    public Sprite getSprite() {
-        return sprite;
-    }
-
-    public void setSprite(Sprite sprite) {
-        this.sprite = sprite;
-    }
-
-    public void paintSprite(){
-
-    }
 
 }

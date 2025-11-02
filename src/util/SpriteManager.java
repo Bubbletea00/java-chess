@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SpriteManager {
-    private final Map<Pieces, Sprite> sprites = new HashMap<>();
+    private static final Map<Pieces, Sprite> sprites = new HashMap<>();
     private final Map<Pieces, ImageIcon> pieceIcons = new HashMap<>();
 
     private int scaling = 64;
