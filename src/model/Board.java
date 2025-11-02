@@ -9,10 +9,18 @@ public class Board {
     private boolean shortCastleBlack = false;
     private boolean longCastleBlack = false;
     private boolean enPassant = false;
+    private boolean isWhiteTurn = true;
     private int enPassantRank = 0;
     private int enPassantFile = 0;
 
     //getters and setters
+    public boolean isWhiteTurn() {
+        return isWhiteTurn;
+    }
+
+    public void setWhiteTurn(boolean whiteTurn) {
+        isWhiteTurn = whiteTurn;
+    }
     public boolean isShortCastleWhite() {
         return shortCastleWhite;
     }
