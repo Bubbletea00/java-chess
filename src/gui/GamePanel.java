@@ -21,15 +21,20 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private Point dragSourceSquare = null;
 
     private Map<Point, Pieces> piecePositions = new HashMap<>();
-    private final SpriteManager spriteManager;
+    private SpriteManager spriteManager;
     
     private static final int BOARD_SIZE = 8;
+    private static final int PANEL_SIZE = 800;
+    private static final int SQUARE_SIZE = PANEL_SIZE / BOARD_SIZE; // 100 pixels
 
     public GamePanel() {
         this.setBackground(Theme.BACKGROUND);
-        this.setPreferredSize(new Dimension(800, 800));
-        this.spriteManager = new SpriteManager();
-
+        this.setPreferredSize(new Dimension(PANEL_SIZE, PANEL_SIZE));
+        
+        // Create SpriteManager with correct square size
+        this.spriteManager = new SpriteManager(80);
+        
+        // Remove layout manager - we'll draw everything manually
         this.setLayout(null);
         
         assignAllIcons(new Board());
@@ -53,44 +58,57 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         Pieces piece = piecePositions.get(point);
         return piece != null ? spriteManager.getSprite(piece) : null;
     }
+    
+    private void drawCenteredSprite(Graphics2D g2d, Sprite sprite, int squareX, int squareY, int squareSize) {
+        if (sprite == null) return;
+        
+        int spriteWidth = sprite.getWidth();
+        int spriteHeight = sprite.getHeight();
+        
+        // Calculate centered position
+        int x = squareX + (squareSize - spriteWidth) / 2;
+        int y = squareY + (squareSize - spriteHeight) / 2;
+        
+        g2d.drawImage(sprite, x, y, null);
+    }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         
-        int squareSize = getWidth() / BOARD_SIZE;
-        
         // Draw the chessboard squares
         for (int rank = 0; rank < BOARD_SIZE; rank++) {
             for (int file = 0; file < BOARD_SIZE; file++) {
                 boolean isLight = (rank + file) % 2 != 0;
                 g2d.setColor(isLight ? Theme.LIGHT_SQUARE : Theme.DARK_SQUARE);
-                g2d.fillRect(file * squareSize, rank * squareSize, squareSize, squareSize);
+                g2d.fillRect(file * SQUARE_SIZE, rank * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
             }
         }
-
+        
+        // Draw all sprites on their squares (except the one being dragged)
         for (Map.Entry<Point, Pieces> entry : piecePositions.entrySet()) {
             Point square = entry.getKey();
             Pieces piece = entry.getValue();
             
             // Skip drawing the sprite at its original position if it's being dragged
-            if (dragging && square.equals(dragSourceSquare)) {
+            if (dragging && dragSourceSquare != null && square.equals(dragSourceSquare)) {
                 continue;
             }
             
             Sprite sprite = spriteManager.getSprite(piece);
             if (sprite != null) {
-                int x = square.y * squareSize;
-                int y = square.x * squareSize;
-                g2d.drawImage(sprite, x, y, squareSize, squareSize, null);
+                int squareX = square.y * SQUARE_SIZE;
+                int squareY = square.x * SQUARE_SIZE;
+                drawCenteredSprite(g2d, sprite, squareX, squareY, SQUARE_SIZE);
             }
         }
-
+        
+        // Draw the dragged sprite centered at mouse position
         if (dragging && draggedSprite != null && dragPosition != null) {
-            int x = dragPosition.x - squareSize / 2;
-            int y = dragPosition.y - squareSize / 2;
-            g2d.drawImage(draggedSprite, x, y, squareSize, squareSize, null);
+            int x = dragPosition.x - draggedSprite.getWidth() / 2;
+            int y = dragPosition.y - draggedSprite.getHeight() / 2;
+            g2d.drawImage(draggedSprite, x, y, null);
         }
     }
 
@@ -101,9 +119,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
 
     @Override
     public void mousePressed(MouseEvent e) {
-        int squareSize = getWidth() / BOARD_SIZE;
-        int file = e.getX() / squareSize;
-        int rank = e.getY() / squareSize;
+        int file = e.getX() / SQUARE_SIZE;
+        int rank = e.getY() / SQUARE_SIZE;
         
         if (rank >= 0 && rank < BOARD_SIZE && file >= 0 && file < BOARD_SIZE) {
             Point square = new Point(rank, file);
@@ -125,9 +142,8 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     @Override
     public void mouseReleased(MouseEvent e) {
         if (dragging) {
-            int squareSize = getWidth() / BOARD_SIZE;
-            int targetFile = e.getX() / squareSize;
-            int targetRank = e.getY() / squareSize;
+            int targetFile = e.getX() / SQUARE_SIZE;
+            int targetRank = e.getY() / SQUARE_SIZE;
             
             // Check if drop is within board bounds
             if (targetRank >= 0 && targetRank < BOARD_SIZE && 

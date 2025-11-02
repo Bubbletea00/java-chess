@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class ChessWindow extends JFrame{
     int windowWidth = 1200;
-    int windowHeight = 800;
+    int windowHeight = 830;
 
     private final GamePanel gamePanel;
 

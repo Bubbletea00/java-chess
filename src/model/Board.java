@@ -124,9 +124,12 @@ public class Board {
     }
 
 
-    //TODO implement ChessCoordinate class
     public Pieces getPieceAt(int rank, int file){
         return board[rank][file];
+    }
+
+    public void setPieceAt(int rank, int file, Pieces piece){
+        board[rank][file] = piece;
     }
 
     public void movePiece(int fromRank, int fromFile, int toRank, int toFile) {
