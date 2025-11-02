@@ -19,7 +19,7 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
     private Sprite sprite;
 
     private void initUI() {
-        SpriteManager sm = new SpriteManager();
+        SpriteManager sm = new SpriteManager(64);
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
 
@@ -36,10 +36,10 @@ public class Playground extends JPanel implements MouseListener, MouseMotionList
 
 
 
-    private int spriteX = 60;
-    private int spriteY = 60;
-    private final int spriteWidth = 60;
-    private final int spriteHeight = 60;
+    private int spriteX = 64;
+    private int spriteY = 64;
+    private final int spriteWidth = 64;
+    private final int spriteHeight = 64;
 
     private boolean dragging = false;
 
