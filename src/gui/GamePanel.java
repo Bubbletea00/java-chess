@@ -21,14 +21,13 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
     private Point dragSourceSquare = null;
     private List<Point> legalMoves = null;
 
-    private ChessGame game;
-    private SpriteManager spriteManager;
+    private final ChessGame game;
+    private final SpriteManager spriteManager;
     
     private static final int BOARD_SIZE = 8;
     private static final int PANEL_SIZE = 800;
     private static final int SQUARE_SIZE = PANEL_SIZE / BOARD_SIZE;
-    
-    private static final Color LEGAL_MOVE_HIGHLIGHT = new Color(124, 252, 0, 100);
+
 
     public GamePanel() {
         this.setBackground(Theme.BACKGROUND);
@@ -78,7 +77,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
         
         // Highlight legal move squares
         if (dragging && legalMoves != null) {
-            g2d.setColor(LEGAL_MOVE_HIGHLIGHT);
+            g2d.setColor(Theme.LEGAL_MOVE_HIGHLIGHT);
             for (Point move : legalMoves) {
                 int x = move.y * SQUARE_SIZE;
                 int y = move.x * SQUARE_SIZE;
@@ -165,7 +164,7 @@ public class GamePanel extends JPanel implements MouseListener, MouseMotionListe
                 
                 if (!moveSuccess) {
                     // Illegal move - piece snaps back (do nothing)
-                    System.out.println("Illegal move!");
+//                    System.out.println("Illegal move!");
                 }
             }
             
