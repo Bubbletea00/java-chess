@@ -23,21 +23,23 @@ public class ChessGame {
 
     /**
      * Get all legal moves for a piece at the given position
+     * @param from Point where x=rank, y=file
      */
     public List<Point> getLegalMoves(Point from) {
         List<Point> legalMoves = new ArrayList<>();
-        Pieces piece = board.getPieceAt(from.x, from.y);
+        int rank = from.x;
+        int file = from.y;
+        Pieces piece = board.getPieceAt(rank, file);
         
         if (piece == Pieces.EMPTY) {
             return legalMoves;
         }
 
-        // Check if it's the correct player's turn
         if (!isCorrectPlayersPiece(piece)) {
             return legalMoves;
         }
 
-        // Generate legal moves based on piece type
+
         switch (piece) {
             case WHITE_PAWN:
             case BLACK_PAWN:
@@ -70,26 +72,46 @@ public class ChessGame {
 
     /**
      * Attempt to make a move. Returns true if move is legal and executed.
+     * @param from Point where x=rank, y=file
+     * @param to Point where x=rank, y=file
      */
     public boolean makeMove(Point from, Point to) {
         List<Point> legalMoves = getLegalMoves(from);
         
         if (!legalMoves.contains(to)) {
-            return false; // Illegal move
+            return false;
+        }
+
+        int fromRank = from.x;
+        int fromFile = from.y;
+        int toRank = to.x;
+        int toFile = to.y;
+
+        Pieces piece = board.getPieceAt(fromRank, fromFile);
+        
+        // Check if this is an en passant capture
+        if ((piece == Pieces.WHITE_PAWN || piece == Pieces.BLACK_PAWN) && 
+            board.isEnPassant() && 
+            toRank == board.getEnPassantRank() && 
+            toFile == board.getEnPassantFile()) {
+            
+            // Remove the captured pawn (which is on the same file but different rank)
+            int direction = (piece == Pieces.WHITE_PAWN) ? -1 : 1;
+            int capturedPawnRank = toRank - direction;
+            board.setPieceAt(capturedPawnRank, toFile, Pieces.EMPTY);
+            System.out.println("En passant capture executed at [" + capturedPawnRank + "," + toFile + "]");
         }
 
         // Execute the move
-        Pieces piece = board.getPieceAt(from.x, from.y);
-        board.setPieceAt(to.x, to.y, piece);
-        board.setPieceAt(from.x, from.y, Pieces.EMPTY);
+        board.setPieceAt(toRank, toFile, piece);
+        board.setPieceAt(fromRank, fromFile, Pieces.EMPTY);
 
-        // Update states
-        if (board.isEnPassant()) {
-            board.setEnPassant(false);
-            board.setEnPassantFile(-1);
-            board.setEnPassantRank(-1);
-        }
+        // Reset en passant flag
+        board.setEnPassant(false);
+        board.setEnPassantFile(-1);
+        board.setEnPassantRank(-1);
 
+        // Update castling rights
         switch (piece) {
             case BLACK_KING:
                 board.setLongCastleBlack(false);
@@ -100,49 +122,36 @@ public class ChessGame {
                 board.setShortCastleWhite(false);
                 break;
             case BLACK_ROOK:
-                if (from.x == 0) board.setLongCastleWhite(false);
-                if (from.x == 7) board.setShortCastleBlack(false);
+                if (fromFile == 0) board.setLongCastleBlack(false);
+                if (fromFile == 7) board.setShortCastleBlack(false);
                 break;
             case WHITE_ROOK:
-                if (from.x == 0) board.setLongCastleBlack(false);
-                if (from.x == 7) board.setShortCastleWhite(false);
+                if (fromFile == 0) board.setLongCastleWhite(false);
+                if (fromFile == 7) board.setShortCastleWhite(false);
                 break;
-            case WHITE_PAWN:
-            case BLACK_PAWN:
-                for (int rankOffset : new int[]{-2, 2}) {
-                    if (from.y + rankOffset == to.y) {
-                        for (int fileOffset : new int[]{-1, 1}) {
-                            if (isValidSquare(from.x + fileOffset, to.y)) {
-                                if (isOpponentPiece(piece, board.getPieceAt(from.x + fileOffset, to.y))) {
-                                    board.setEnPassant(true);
-                                    board.setEnPassantFile(from.x);
-                                    board.setEnPassantRank(to.y + (rankOffset == -2 ? 1 : -1));
+        }
 
-                                    System.out.println("en passant [file,rank] = [" + board.getEnPassantFile() + "," + board.getEnPassantRank() + "]");
-                                    //todo fix the en passant ...
-                                }
-                            }
+        // Check for pawn double move to set en passant
+        if (piece == Pieces.WHITE_PAWN || piece == Pieces.BLACK_PAWN) {
+            int direction = (piece == Pieces.WHITE_PAWN) ? -1 : 1;
+
+            if (Math.abs(toRank - fromRank) == 2) {
+
+                for (int fileOffset : new int[]{-1, 1}) {
+                    int adjacentFile = toFile + fileOffset;
+                    if (adjacentFile >= 0 && adjacentFile < 8) {
+                        Pieces adjacentPiece = board.getPieceAt(toRank, adjacentFile);
+                        if (isOpponentPawn(piece, adjacentPiece)) {
+                            int enPassantRank = fromRank + direction;
+                            board.setEnPassant(true);
+                            board.setEnPassantRank(enPassantRank);
+                            board.setEnPassantFile(fromFile);
+                            System.out.println("En passant available at [rank,file] = [" + enPassantRank + "," + fromFile + "]");
+                            break;
                         }
                     }
                 }
-//                if (from.x - to.x == 2 || from.x - to.x == -2) {
-//                    if (isOpponentPiece(piece, board.getPieceAt(to.x + 1, to.y))) {
-//                        board.setEnPassant(true);
-//                        board.setEnPassantFile(to.x + 1);
-//                        board.setEnPassantRank(to.y);
-//                        System.out.println("en passant [file,rank] = [" + board.getEnPassantFile() + "," + board.getEnPassantRank() + "]");
-//                    }
-//                    if (isOpponentPiece(piece, board.getPieceAt(to.x - 1, to.y))) {
-//                        board.setEnPassant(true);
-//                        board.setEnPassantFile(to.x - 1);
-//                        board.setEnPassantRank(to.y);
-//                        System.out.println("en passant [file,rank] = [" + board.getEnPassantFile() + "," + board.getEnPassantRank() + "]");
-//
-//                    }
-//                }
-                break;
-            case null, default:
-                break;
+            }
         }
 
         // Switch turns
@@ -159,27 +168,30 @@ public class ChessGame {
 
     private List<Point> getPawnMoves(Point from, Pieces piece) {
         List<Point> moves = new ArrayList<>();
+        int rank = from.x;
+        int file = from.y;
+        
         boolean isWhite = piece == Pieces.WHITE_PAWN;
-        int direction = isWhite ? -1 : 1; // White moves up (-1), Black moves down (+1)
+        int direction = isWhite ? -1 : 1; // White moves up (rank decreases), Black moves down (rank increases)
         int startRank = isWhite ? 6 : 1;
 
         // Move forward one square
-        int newRank = from.x + direction;
-        if (isValidSquare(newRank, from.y) && board.getPieceAt(newRank, from.y) == Pieces.EMPTY) {
-            moves.add(new Point(newRank, from.y));
+        int newRank = rank + direction;
+        if (isValidSquare(newRank, file) && board.getPieceAt(newRank, file) == Pieces.EMPTY) {
+            moves.add(new Point(newRank, file));
 
             // Move forward two squares from starting position
-            if (from.x == startRank) {
-                int doubleRank = from.x + 2 * direction;
-                if (board.getPieceAt(doubleRank, from.y) == Pieces.EMPTY) {
-                    moves.add(new Point(doubleRank, from.y));
+            if (rank == startRank) {
+                int doubleRank = rank + 2 * direction;
+                if (board.getPieceAt(doubleRank, file) == Pieces.EMPTY) {
+                    moves.add(new Point(doubleRank, file));
                 }
             }
         }
 
         // Capture diagonally
         for (int fileOffset : new int[]{-1, 1}) {
-            int captureFile = from.y + fileOffset;
+            int captureFile = file + fileOffset;
             if (isValidSquare(newRank, captureFile)) {
                 Pieces target = board.getPieceAt(newRank, captureFile);
                 if (target != Pieces.EMPTY && isOpponentPiece(piece, target)) {
@@ -188,27 +200,31 @@ public class ChessGame {
             }
         }
 
-
-        //en passant
+        // En passant capture
         if (board.isEnPassant()) {
-            if(isValidSquare(board.getEnPassantRank(),board.getEnPassantFile())){
-                moves.add(new Point(board.getEnPassantRank(), board.getEnPassantFile()));
+            int epRank = board.getEnPassantRank();
+            int epFile = board.getEnPassantFile();
+            
+            // The en passant target square should be diagonally forward from current pawn
+            if (epRank == newRank && Math.abs(epFile - file) == 1) {
+                moves.add(new Point(epRank, epFile));
             }
         }
-
-
 
         return moves;
     }
 
     private List<Point> getKnightMoves(Point from, Pieces piece) {
         List<Point> moves = new ArrayList<>();
+        int rank = from.x;
+        int file = from.y;
+        
         int[][] offsets = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, 
                           {1, -2}, {1, 2}, {2, -1}, {2, 1}};
 
         for (int[] offset : offsets) {
-            int newRank = from.x + offset[0];
-            int newFile = from.y + offset[1];
+            int newRank = rank + offset[0];
+            int newFile = file + offset[1];
             if (isValidSquare(newRank, newFile) && canMoveTo(piece, newRank, newFile)) {
                 moves.add(new Point(newRank, newFile));
             }
@@ -284,6 +300,10 @@ public class ChessGame {
         boolean targetIsWhite = target.name().startsWith("WHITE");
         if (target == Pieces.EMPTY || piece == Pieces.EMPTY) return false;
         return pieceIsWhite != targetIsWhite;
+    }
+
+    private boolean isOpponentPawn(Pieces piece, Pieces target) {
+        return isOpponentPiece(piece, target) && (target == Pieces.WHITE_PAWN || target == Pieces.BLACK_PAWN);
     }
 
     private boolean isValidSquare(int rank, int file) {
