@@ -1,6 +1,6 @@
 package model;
 
-import java.awt.Point;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +23,7 @@ public class ChessGame {
 
     /**
      * Get all legal moves for a piece at the given position
+     *
      * @param from Point where x=rank, y=file
      */
     public List<Point> getLegalMoves(Point from) {
@@ -30,7 +31,7 @@ public class ChessGame {
         int rank = from.x;
         int file = from.y;
         Pieces piece = board.getPieceAt(rank, file);
-        
+
         if (piece == Pieces.EMPTY) {
             return legalMoves;
         }
@@ -72,12 +73,13 @@ public class ChessGame {
 
     /**
      * Attempt to make a move. Returns true if move is legal and executed.
+     *
      * @param from Point where x=rank, y=file
-     * @param to Point where x=rank, y=file
+     * @param to   Point where x=rank, y=file
      */
     public boolean makeMove(Point from, Point to) {
         List<Point> legalMoves = getLegalMoves(from);
-        
+
         if (!legalMoves.contains(to)) {
             return false;
         }
@@ -88,13 +90,13 @@ public class ChessGame {
         int toFile = to.y;
 
         Pieces piece = board.getPieceAt(fromRank, fromFile);
-        
+
         // Check if this is an en passant capture
-        if ((piece == Pieces.WHITE_PAWN || piece == Pieces.BLACK_PAWN) && 
-            board.isEnPassant() && 
-            toRank == board.getEnPassantRank() && 
-            toFile == board.getEnPassantFile()) {
-            
+        if ((piece == Pieces.WHITE_PAWN || piece == Pieces.BLACK_PAWN) &&
+                board.isEnPassant() &&
+                toRank == board.getEnPassantRank() &&
+                toFile == board.getEnPassantFile()) {
+
             // Remove the captured pawn (which is on the same file but different rank)
             int direction = (piece == Pieces.WHITE_PAWN) ? -1 : 1;
             int capturedPawnRank = toRank - direction;
@@ -170,7 +172,7 @@ public class ChessGame {
         List<Point> moves = new ArrayList<>();
         int rank = from.x;
         int file = from.y;
-        
+
         boolean isWhite = piece == Pieces.WHITE_PAWN;
         int direction = isWhite ? -1 : 1; // White moves up (rank decreases), Black moves down (rank increases)
         int startRank = isWhite ? 6 : 1;
@@ -204,7 +206,7 @@ public class ChessGame {
         if (board.isEnPassant()) {
             int epRank = board.getEnPassantRank();
             int epFile = board.getEnPassantFile();
-            
+
             // The en passant target square should be diagonally forward from current pawn
             if (epRank == newRank && Math.abs(epFile - file) == 1) {
                 moves.add(new Point(epRank, epFile));
@@ -218,9 +220,9 @@ public class ChessGame {
         List<Point> moves = new ArrayList<>();
         int rank = from.x;
         int file = from.y;
-        
-        int[][] offsets = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2}, 
-                          {1, -2}, {1, 2}, {2, -1}, {2, 1}};
+
+        int[][] offsets = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
+                {1, -2}, {1, 2}, {2, -1}, {2, 1}};
 
         for (int[] offset : offsets) {
             int newRank = rank + offset[0];
@@ -243,13 +245,13 @@ public class ChessGame {
 
     private List<Point> getQueenMoves(Point from, Pieces piece) {
         return getSlidingMoves(from, piece, new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1},
-                                                         {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
+                {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
     }
 
     private List<Point> getKingMoves(Point from, Pieces piece) {
         List<Point> moves = new ArrayList<>();
         int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1},
-                          {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+                {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
 
         for (int[] offset : offsets) {
             int newRank = from.x + offset[0];
@@ -258,9 +260,184 @@ public class ChessGame {
                 moves.add(new Point(newRank, newFile));
             }
         }
+        //System.out.println("Castle rights: " + board.isLongCastleWhite() + ", " + board.isLongCastleBlack() + ", " + board.isShortCastleWhite() + ", " + board.isShortCastleBlack());
+        if (isCastleLegal(piece)) moves.addAll(getCastlingMoves(piece));
 
         return moves;
     }
+
+    private List<Point> getCastlingMoves(Pieces piece) {
+
+
+        List<Point> moves = new ArrayList<>();
+
+        switch (piece) {
+            case WHITE_KING:
+                if (board.isLongCastleWhite()) {
+                    moves.add(new Point(7, 0));
+                    moves.add(new Point(7, 2));
+                }
+                if (board.isShortCastleWhite()) {
+                    moves.add(new Point(7, 7));
+                    moves.add(new Point(7, 6));
+                }
+                break;
+            case BLACK_KING:
+                if (board.isLongCastleBlack()) {
+                    moves.add(new Point(0, 0));
+                    moves.add(new Point(0, 2));
+                }
+                if (board.isShortCastleBlack()) {
+                    moves.add(new Point(0, 7));
+                    moves.add(new Point(0, 6));
+                }
+                break;
+        }
+
+        return moves;
+    }
+
+    private boolean isCastleLegal(Pieces king) {
+        boolean isWhiteKing = king.isWhite();
+        boolean isShortCastle = isWhiteKing ? board.isShortCastleWhite() : board.isShortCastleBlack();
+
+        int kingRank = isWhiteKing ? 7 : 0;
+        int kingFile = 4;
+
+        List<Point> dangerSquares = new ArrayList<>();
+        List<Point> emptySquares = new ArrayList<>();
+        dangerSquares.add(new Point(kingRank, kingFile));
+
+        if (isShortCastle) {
+            dangerSquares.add(new Point(kingRank, kingFile + 1));
+            dangerSquares.add(new Point(kingRank, kingFile + 2));
+
+            emptySquares.add(new Point(kingRank, kingFile + 1));
+            emptySquares.add(new Point(kingRank, kingFile + 2));
+        } else {
+            dangerSquares.add(new Point(kingRank, kingFile - 1));
+            dangerSquares.add(new Point(kingRank, kingFile - 2));
+
+            emptySquares.add(new Point(kingRank, kingFile - 1));
+            emptySquares.add(new Point(kingRank, kingFile - 2));
+            emptySquares.add(new Point(kingRank, kingFile - 3));
+        }
+
+        return areNonDangerSquares(dangerSquares) && areEmptySquares(emptySquares);
+    }
+
+    private boolean isEmptySquare(Point square) {
+        return board.getPieceAt(square.x, square.y) == Pieces.EMPTY;
+    }
+
+    private boolean areEmptySquares(List<Point> squares) {
+        for (Point square : squares) {
+            if (!isEmptySquare(square)) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if a square is not under attack by opponent pieces
+     *
+     * @param square Point where x=rank, y=file
+     * @return true if the square is safe (not attacked by opponent)
+     */
+    private boolean isNonDangerSquare(Point square) {
+        // Temporarily switch perspective to check opponent attacks
+        boolean originalTurn = whiteToMove;
+        whiteToMove = !whiteToMove;
+
+        // Check all opponent pieces to see if any can attack this square
+        for (int rank = 0; rank < 8; rank++) {
+            for (int file = 0; file < 8; file++) {
+                Pieces piece = board.getPieceAt(rank, file);
+
+                if (piece == Pieces.EMPTY) continue;
+                if (!isCorrectPlayersPiece(piece)) continue; // Skip our own pieces
+
+                Point from = new Point(rank, file);
+                List<Point> moves = getPseudoLegalMoves(from, piece);
+
+                if (moves.contains(square)) {
+                    whiteToMove = originalTurn; // Restore original turn
+                    return false; // Square is under attack
+                }
+            }
+        }
+
+        whiteToMove = originalTurn; // Restore original turn
+        return true; // Square is safe
+    }
+
+    /**
+     * Get pseudo-legal moves (doesn't check for checks/pins, just raw piece movement)
+     * Used internally for attack detection
+     */
+    private List<Point> getPseudoLegalMoves(Point from, Pieces piece) {
+        return switch (piece) {
+            case WHITE_PAWN, BLACK_PAWN -> getPawnAttacks(from, piece); // Special method for pawn attacks only
+            case WHITE_KNIGHT, BLACK_KNIGHT -> getKnightMoves(from, piece);
+            case WHITE_BISHOP, BLACK_BISHOP -> getBishopMoves(from, piece);
+            case WHITE_ROOK, BLACK_ROOK -> getRookMoves(from, piece);
+            case WHITE_QUEEN, BLACK_QUEEN -> getQueenMoves(from, piece);
+            case WHITE_KING, BLACK_KING -> getKingAttacks(from, piece); // Without castling
+            default -> new ArrayList<>();
+        };
+    }
+
+    /**
+     * Get only pawn attack squares (not forward moves)
+     */
+    private List<Point> getPawnAttacks(Point from, Pieces piece) {
+        List<Point> attacks = new ArrayList<>();
+        int rank = from.x;
+        int file = from.y;
+
+        boolean isWhite = piece == Pieces.WHITE_PAWN;
+        int direction = isWhite ? -1 : 1;
+        int newRank = rank + direction;
+
+        // Pawns can only attack diagonally
+        for (int fileOffset : new int[]{-1, 1}) {
+            int captureFile = file + fileOffset;
+            if (isValidSquare(newRank, captureFile)) {
+                attacks.add(new Point(newRank, captureFile));
+            }
+        }
+
+        return attacks;
+    }
+
+    /**
+     * Get king attacks without castling
+     */
+    private List<Point> getKingAttacks(Point from, Pieces piece) {
+        List<Point> moves = new ArrayList<>();
+        int rank = from.x;
+        int file = from.y;
+
+        int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1},
+                {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+
+        for (int[] offset : offsets) {
+            int newRank = rank + offset[0];
+            int newFile = file + offset[1];
+            if (isValidSquare(newRank, newFile) && canMoveTo(piece, newRank, newFile)) {
+                moves.add(new Point(newRank, newFile));
+            }
+        }
+
+        return moves; // No castling in attack detection
+    }
+
+    private boolean areNonDangerSquares(List<Point> squares) {
+        for (Point square : squares) {
+            if (!isNonDangerSquare(square)) return false;
+        }
+        return true;
+    }
+
 
     private List<Point> getSlidingMoves(Point from, Pieces piece, int[][] directions) {
         List<Point> moves = new ArrayList<>();

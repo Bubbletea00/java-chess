@@ -4,10 +4,10 @@ import java.util.Arrays;
 
 public class Board {
     private Pieces[][] board = new Pieces[8][8];
-    private boolean shortCastleWhite = false;
-    private boolean longCastleWhite = false;
-    private boolean shortCastleBlack = false;
-    private boolean longCastleBlack = false;
+    private boolean shortCastleWhite = true;
+    private boolean longCastleWhite = true;
+    private boolean shortCastleBlack = true;
+    private boolean longCastleBlack = true;
     private boolean enPassant = false;
     private boolean isWhiteTurn = true;
     private int enPassantRank = -1;

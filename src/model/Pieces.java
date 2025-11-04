@@ -15,5 +15,9 @@ public enum Pieces {
     BLACK_BISHOP,
     BLACK_KING,
     BLACK_QUEEN,
-    BLACK_KNIGHT
+    BLACK_KNIGHT;
+
+    public boolean isWhite() {
+        return this.name().startsWith("WHITE");
+    }
 }
