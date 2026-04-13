@@ -1,5 +1,7 @@
 package util;
 
+import model.Pieces;
+
 public class FenTest {
 
     static void main() {
@@ -10,6 +12,7 @@ public class FenTest {
         FenUtils fenUtils = new FenUtils();
 
         fenUtils.test();
+
 
     }
 }

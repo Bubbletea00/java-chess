@@ -72,7 +72,7 @@ public class ChessGame {
     }
 
     /**
-     * Attempt to make a move. Returns true if move is legal and executed.
+     * Attempt to make a move. Returns true if the move is legal and executed.
      *
      * @param from Point where x=rank, y=file
      * @param to   Point where x=rank, y=file
@@ -97,12 +97,19 @@ public class ChessGame {
                 toRank == board.getEnPassantRank() &&
                 toFile == board.getEnPassantFile()) {
 
-            // Remove the captured pawn (which is on the same file but different rank)
+            // Remove the captured pawn (which is in the same file but different rank)
             int direction = (piece == Pieces.WHITE_PAWN) ? -1 : 1;
             int capturedPawnRank = toRank - direction;
             board.setPieceAt(capturedPawnRank, toFile, Pieces.EMPTY);
             System.out.println("En passant capture executed at [" + capturedPawnRank + "," + toFile + "]");
         }
+
+        // Check if this is a castling move
+//        if (piece == Pieces.WHITE_KING || piece == Pieces.BLACK_KING) {
+//            if (Math.abs(toFile - fromFile) == 2 || Math.abs(toFile - fromFile)==) {
+//                //todo
+//            }
+//        }
 
         // Execute the move
         board.setPieceAt(toRank, toFile, piece);
@@ -182,7 +189,7 @@ public class ChessGame {
         if (isValidSquare(newRank, file) && board.getPieceAt(newRank, file) == Pieces.EMPTY) {
             moves.add(new Point(newRank, file));
 
-            // Move forward two squares from starting position
+            // Move forward two squares from the starting position
             if (rank == startRank) {
                 int doubleRank = rank + 2 * direction;
                 if (board.getPieceAt(doubleRank, file) == Pieces.EMPTY) {
@@ -207,7 +214,7 @@ public class ChessGame {
             int epRank = board.getEnPassantRank();
             int epFile = board.getEnPassantFile();
 
-            // The en passant target square should be diagonally forward from current pawn
+            // The en passant target square should be diagonally forward from the current pawn
             if (epRank == newRank && Math.abs(epFile - file) == 1) {
                 moves.add(new Point(epRank, epFile));
             }
