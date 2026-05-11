@@ -32,7 +32,7 @@ public class ChessGame {
         int file = from.y;
         Pieces piece = board.getPieceAt(rank, file);
 
-        if (piece == Pieces.EMPTY) {
+        if (piece.isEmpty()) {
             return legalMoves;
         }
 
@@ -40,32 +40,9 @@ public class ChessGame {
             return legalMoves;
         }
 
-
-        switch (piece) {
-            case WHITE_PAWN:
-            case BLACK_PAWN:
-                legalMoves.addAll(getPawnMoves(from, piece));
-                break;
-            case WHITE_KNIGHT:
-            case BLACK_KNIGHT:
-                legalMoves.addAll(getKnightMoves(from, piece));
-                break;
-            case WHITE_BISHOP:
-            case BLACK_BISHOP:
-                legalMoves.addAll(getBishopMoves(from, piece));
-                break;
-            case WHITE_ROOK:
-            case BLACK_ROOK:
-                legalMoves.addAll(getRookMoves(from, piece));
-                break;
-            case WHITE_QUEEN:
-            case BLACK_QUEEN:
-                legalMoves.addAll(getQueenMoves(from, piece));
-                break;
-            case WHITE_KING:
-            case BLACK_KING:
-                legalMoves.addAll(getKingMoves(from, piece));
-                break;
+        PieceMover mover = getPieceMover(piece);
+        if (mover != null) {
+            legalMoves.addAll(mover.generateMoves(this, from, piece));
         }
 
         return legalMoves;
@@ -90,6 +67,8 @@ public class ChessGame {
         int toFile = to.y;
 
         Pieces piece = board.getPieceAt(fromRank, fromFile);
+        Pieces capturedPiece = board.getPieceAt(toRank, toFile);
+        boolean isCastlingMove = isCastlingMove(piece, from, to);
 
         // Check if this is an en passant capture
         if ((piece == Pieces.WHITE_PAWN || piece == Pieces.BLACK_PAWN) &&
@@ -104,41 +83,21 @@ public class ChessGame {
             System.out.println("En passant capture executed at [" + capturedPawnRank + "," + toFile + "]");
         }
 
-        // Check if this is a castling move
-//        if (piece == Pieces.WHITE_KING || piece == Pieces.BLACK_KING) {
-//            if (Math.abs(toFile - fromFile) == 2 || Math.abs(toFile - fromFile)==) {
-//                //todo
-//            }
-//        }
-
         // Execute the move
         board.setPieceAt(toRank, toFile, piece);
         board.setPieceAt(fromRank, fromFile, Pieces.EMPTY);
+
+        // Move rook after king move when castling.
+        if (isCastlingMove) {
+            moveRookForCastling(piece, toFile);
+        }
 
         // Reset en passant flag
         board.setEnPassant(false);
         board.setEnPassantFile(-1);
         board.setEnPassantRank(-1);
 
-        // Update castling rights
-        switch (piece) {
-            case BLACK_KING:
-                board.setLongCastleBlack(false);
-                board.setShortCastleBlack(false);
-                break;
-            case WHITE_KING:
-                board.setLongCastleWhite(false);
-                board.setShortCastleWhite(false);
-                break;
-            case BLACK_ROOK:
-                if (fromFile == 0) board.setLongCastleBlack(false);
-                if (fromFile == 7) board.setShortCastleBlack(false);
-                break;
-            case WHITE_ROOK:
-                if (fromFile == 0) board.setLongCastleWhite(false);
-                if (fromFile == 7) board.setShortCastleWhite(false);
-                break;
-        }
+        updateCastlingRightsAfterMove(piece, fromRank, fromFile, toRank, toFile, capturedPiece);
 
         // Check for pawn double move to set en passant
         if (piece == Pieces.WHITE_PAWN || piece == Pieces.BLACK_PAWN) {
@@ -171,175 +130,116 @@ public class ChessGame {
     }
 
     private boolean isCorrectPlayersPiece(Pieces piece) {
-        boolean isWhitePiece = piece.name().startsWith("WHITE");
-        return isWhitePiece == whiteToMove;
+        return !piece.isEmpty() && piece.isWhite() == whiteToMove;
     }
 
-    private List<Point> getPawnMoves(Point from, Pieces piece) {
+    private PieceMover getPieceMover(Pieces piece) {
+        return PieceMoverRegistry.getMover(piece);
+    }
+
+    private boolean isCastlingMove(Pieces piece, Point from, Point to) {
+        return piece.getType() == Pieces.PieceType.KING
+                && from.x == to.x
+                && Math.abs(to.y - from.y) == 2;
+    }
+
+    private void moveRookForCastling(Pieces king, int kingToFile) {
+        int rank = king.isWhite() ? 7 : 0;
+
+        if (kingToFile == 6) {
+            Pieces rook = board.getPieceAt(rank, 7);
+            board.setPieceAt(rank, 5, rook);
+            board.setPieceAt(rank, 7, Pieces.EMPTY);
+            return;
+        }
+
+        if (kingToFile == 2) {
+            Pieces rook = board.getPieceAt(rank, 0);
+            board.setPieceAt(rank, 3, rook);
+            board.setPieceAt(rank, 0, Pieces.EMPTY);
+        }
+    }
+
+    private void updateCastlingRightsAfterMove(Pieces piece, int fromRank, int fromFile, int toRank, int toFile, Pieces capturedPiece) {
+        if (piece == Pieces.WHITE_KING) {
+            board.setLongCastleWhite(false);
+            board.setShortCastleWhite(false);
+        } else if (piece == Pieces.BLACK_KING) {
+            board.setLongCastleBlack(false);
+            board.setShortCastleBlack(false);
+        }
+
+        if (piece == Pieces.WHITE_ROOK && fromRank == 7) {
+            if (fromFile == 0) board.setLongCastleWhite(false);
+            if (fromFile == 7) board.setShortCastleWhite(false);
+        } else if (piece == Pieces.BLACK_ROOK && fromRank == 0) {
+            if (fromFile == 0) board.setLongCastleBlack(false);
+            if (fromFile == 7) board.setShortCastleBlack(false);
+        }
+
+        // Capturing a corner rook removes castling rights for that side.
+        if (capturedPiece == Pieces.WHITE_ROOK && toRank == 7) {
+            if (toFile == 0) board.setLongCastleWhite(false);
+            if (toFile == 7) board.setShortCastleWhite(false);
+        } else if (capturedPiece == Pieces.BLACK_ROOK && toRank == 0) {
+            if (toFile == 0) board.setLongCastleBlack(false);
+            if (toFile == 7) board.setShortCastleBlack(false);
+        }
+    }
+
+    List<Point> getCastlingMoves(Pieces king) {
         List<Point> moves = new ArrayList<>();
-        int rank = from.x;
-        int file = from.y;
+        int rank = king.isWhite() ? 7 : 0;
 
-        boolean isWhite = piece == Pieces.WHITE_PAWN;
-        int direction = isWhite ? -1 : 1; // White moves up (rank decreases), Black moves down (rank increases)
-        int startRank = isWhite ? 6 : 1;
-
-        // Move forward one square
-        int newRank = rank + direction;
-        if (isValidSquare(newRank, file) && board.getPieceAt(newRank, file) == Pieces.EMPTY) {
-            moves.add(new Point(newRank, file));
-
-            // Move forward two squares from the starting position
-            if (rank == startRank) {
-                int doubleRank = rank + 2 * direction;
-                if (board.getPieceAt(doubleRank, file) == Pieces.EMPTY) {
-                    moves.add(new Point(doubleRank, file));
-                }
-            }
+        if (canCastle(king, true)) {
+            moves.add(new Point(rank, 6));
         }
-
-        // Capture diagonally
-        for (int fileOffset : new int[]{-1, 1}) {
-            int captureFile = file + fileOffset;
-            if (isValidSquare(newRank, captureFile)) {
-                Pieces target = board.getPieceAt(newRank, captureFile);
-                if (target != Pieces.EMPTY && isOpponentPiece(piece, target)) {
-                    moves.add(new Point(newRank, captureFile));
-                }
-            }
-        }
-
-        // En passant capture
-        if (board.isEnPassant()) {
-            int epRank = board.getEnPassantRank();
-            int epFile = board.getEnPassantFile();
-
-            // The en passant target square should be diagonally forward from the current pawn
-            if (epRank == newRank && Math.abs(epFile - file) == 1) {
-                moves.add(new Point(epRank, epFile));
-            }
+        if (canCastle(king, false)) {
+            moves.add(new Point(rank, 2));
         }
 
         return moves;
     }
 
-    private List<Point> getKnightMoves(Point from, Pieces piece) {
-        List<Point> moves = new ArrayList<>();
-        int rank = from.x;
-        int file = from.y;
+    private boolean canCastle(Pieces king, boolean shortCastle) {
+        if (king.getType() != Pieces.PieceType.KING) {
+            return false;
+        }
 
-        int[][] offsets = {{-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
-                {1, -2}, {1, 2}, {2, -1}, {2, 1}};
+        boolean rights = king.isWhite()
+                ? (shortCastle ? board.isShortCastleWhite() : board.isLongCastleWhite())
+                : (shortCastle ? board.isShortCastleBlack() : board.isLongCastleBlack());
+        if (!rights) {
+            return false;
+        }
 
-        for (int[] offset : offsets) {
-            int newRank = rank + offset[0];
-            int newFile = file + offset[1];
-            if (isValidSquare(newRank, newFile) && canMoveTo(piece, newRank, newFile)) {
-                moves.add(new Point(newRank, newFile));
+        int rank = king.isWhite() ? 7 : 0;
+        Pieces rook = board.getPieceAt(rank, shortCastle ? 7 : 0);
+        Pieces expectedRook = king.isWhite() ? Pieces.WHITE_ROOK : Pieces.BLACK_ROOK;
+        if (rook != expectedRook) {
+            return false;
+        }
+
+        int[] emptyFiles = shortCastle ? new int[]{5, 6} : new int[]{1, 2, 3};
+        int[] dangerFiles = shortCastle ? new int[]{4, 5, 6} : new int[]{4, 3, 2};
+
+        return areEmptySquares(rank, emptyFiles) && areNonDangerSquares(rank, dangerFiles);
+    }
+
+    private boolean areEmptySquares(int rank, int[] files) {
+        for (int file : files) {
+            if (!board.getPieceAt(rank, file).isEmpty()) {
+                return false;
             }
         }
-
-        return moves;
+        return true;
     }
 
-    private List<Point> getBishopMoves(Point from, Pieces piece) {
-        return getSlidingMoves(from, piece, new int[][]{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
-    }
-
-    private List<Point> getRookMoves(Point from, Pieces piece) {
-        return getSlidingMoves(from, piece, new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}});
-    }
-
-    private List<Point> getQueenMoves(Point from, Pieces piece) {
-        return getSlidingMoves(from, piece, new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1},
-                {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
-    }
-
-    private List<Point> getKingMoves(Point from, Pieces piece) {
-        List<Point> moves = new ArrayList<>();
-        int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1},
-                {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
-
-        for (int[] offset : offsets) {
-            int newRank = from.x + offset[0];
-            int newFile = from.y + offset[1];
-            if (isValidSquare(newRank, newFile) && canMoveTo(piece, newRank, newFile)) {
-                moves.add(new Point(newRank, newFile));
+    private boolean areNonDangerSquares(int rank, int[] files) {
+        for (int file : files) {
+            if (!isNonDangerSquare(new Point(rank, file))) {
+                return false;
             }
-        }
-        //System.out.println("Castle rights: " + board.isLongCastleWhite() + ", " + board.isLongCastleBlack() + ", " + board.isShortCastleWhite() + ", " + board.isShortCastleBlack());
-        if (isCastleLegal(piece)) moves.addAll(getCastlingMoves(piece));
-
-        return moves;
-    }
-
-    private List<Point> getCastlingMoves(Pieces piece) {
-
-
-        List<Point> moves = new ArrayList<>();
-
-        switch (piece) {
-            case WHITE_KING:
-                if (board.isLongCastleWhite()) {
-                    moves.add(new Point(7, 0));
-                    moves.add(new Point(7, 2));
-                }
-                if (board.isShortCastleWhite()) {
-                    moves.add(new Point(7, 7));
-                    moves.add(new Point(7, 6));
-                }
-                break;
-            case BLACK_KING:
-                if (board.isLongCastleBlack()) {
-                    moves.add(new Point(0, 0));
-                    moves.add(new Point(0, 2));
-                }
-                if (board.isShortCastleBlack()) {
-                    moves.add(new Point(0, 7));
-                    moves.add(new Point(0, 6));
-                }
-                break;
-        }
-
-        return moves;
-    }
-
-    private boolean isCastleLegal(Pieces king) {
-        boolean isWhiteKing = king.isWhite();
-        boolean isShortCastle = isWhiteKing ? board.isShortCastleWhite() : board.isShortCastleBlack();
-
-        int kingRank = isWhiteKing ? 7 : 0;
-        int kingFile = 4;
-
-        List<Point> dangerSquares = new ArrayList<>();
-        List<Point> emptySquares = new ArrayList<>();
-        dangerSquares.add(new Point(kingRank, kingFile));
-
-        if (isShortCastle) {
-            dangerSquares.add(new Point(kingRank, kingFile + 1));
-            dangerSquares.add(new Point(kingRank, kingFile + 2));
-
-            emptySquares.add(new Point(kingRank, kingFile + 1));
-            emptySquares.add(new Point(kingRank, kingFile + 2));
-        } else {
-            dangerSquares.add(new Point(kingRank, kingFile - 1));
-            dangerSquares.add(new Point(kingRank, kingFile - 2));
-
-            emptySquares.add(new Point(kingRank, kingFile - 1));
-            emptySquares.add(new Point(kingRank, kingFile - 2));
-            emptySquares.add(new Point(kingRank, kingFile - 3));
-        }
-
-        return areNonDangerSquares(dangerSquares) && areEmptySquares(emptySquares);
-    }
-
-    private boolean isEmptySquare(Point square) {
-        return board.getPieceAt(square.x, square.y) == Pieces.EMPTY;
-    }
-
-    private boolean areEmptySquares(List<Point> squares) {
-        for (Point square : squares) {
-            if (!isEmptySquare(square)) return false;
         }
         return true;
     }
@@ -360,7 +260,7 @@ public class ChessGame {
             for (int file = 0; file < 8; file++) {
                 Pieces piece = board.getPieceAt(rank, file);
 
-                if (piece == Pieces.EMPTY) continue;
+                if (piece.isEmpty()) continue;
                 if (!isCorrectPlayersPiece(piece)) continue; // Skip our own pieces
 
                 Point from = new Point(rank, file);
@@ -382,71 +282,12 @@ public class ChessGame {
      * Used internally for attack detection
      */
     private List<Point> getPseudoLegalMoves(Point from, Pieces piece) {
-        return switch (piece) {
-            case WHITE_PAWN, BLACK_PAWN -> getPawnAttacks(from, piece); // Special method for pawn attacks only
-            case WHITE_KNIGHT, BLACK_KNIGHT -> getKnightMoves(from, piece);
-            case WHITE_BISHOP, BLACK_BISHOP -> getBishopMoves(from, piece);
-            case WHITE_ROOK, BLACK_ROOK -> getRookMoves(from, piece);
-            case WHITE_QUEEN, BLACK_QUEEN -> getQueenMoves(from, piece);
-            case WHITE_KING, BLACK_KING -> getKingAttacks(from, piece); // Without castling
-            default -> new ArrayList<>();
-        };
-    }
-
-    /**
-     * Get only pawn attack squares (not forward moves)
-     */
-    private List<Point> getPawnAttacks(Point from, Pieces piece) {
-        List<Point> attacks = new ArrayList<>();
-        int rank = from.x;
-        int file = from.y;
-
-        boolean isWhite = piece == Pieces.WHITE_PAWN;
-        int direction = isWhite ? -1 : 1;
-        int newRank = rank + direction;
-
-        // Pawns can only attack diagonally
-        for (int fileOffset : new int[]{-1, 1}) {
-            int captureFile = file + fileOffset;
-            if (isValidSquare(newRank, captureFile)) {
-                attacks.add(new Point(newRank, captureFile));
-            }
-        }
-
-        return attacks;
-    }
-
-    /**
-     * Get king attacks without castling
-     */
-    private List<Point> getKingAttacks(Point from, Pieces piece) {
-        List<Point> moves = new ArrayList<>();
-        int rank = from.x;
-        int file = from.y;
-
-        int[][] offsets = {{1, 0}, {-1, 0}, {0, 1}, {0, -1},
-                {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
-
-        for (int[] offset : offsets) {
-            int newRank = rank + offset[0];
-            int newFile = file + offset[1];
-            if (isValidSquare(newRank, newFile) && canMoveTo(piece, newRank, newFile)) {
-                moves.add(new Point(newRank, newFile));
-            }
-        }
-
-        return moves; // No castling in attack detection
-    }
-
-    private boolean areNonDangerSquares(List<Point> squares) {
-        for (Point square : squares) {
-            if (!isNonDangerSquare(square)) return false;
-        }
-        return true;
+        PieceMover mover = getPieceMover(piece);
+        return mover == null ? new ArrayList<>() : mover.generateAttacks(this, from, piece);
     }
 
 
-    private List<Point> getSlidingMoves(Point from, Pieces piece, int[][] directions) {
+    List<Point> getSlidingMoves(Point from, Pieces piece, int[][] directions) {
         List<Point> moves = new ArrayList<>();
 
         for (int[] dir : directions) {
@@ -460,7 +301,7 @@ public class ChessGame {
                 if (!isValidSquare(rank, file)) break;
 
                 Pieces target = board.getPieceAt(rank, file);
-                if (target == Pieces.EMPTY) {
+                if (target.isEmpty()) {
                     moves.add(new Point(rank, file));
                 } else {
                     if (isOpponentPiece(piece, target)) {
@@ -474,23 +315,21 @@ public class ChessGame {
         return moves;
     }
 
-    private boolean canMoveTo(Pieces piece, int rank, int file) {
+    boolean canMoveTo(Pieces piece, int rank, int file) {
         Pieces target = board.getPieceAt(rank, file);
-        return target == Pieces.EMPTY || isOpponentPiece(piece, target);
+        return target.isEmpty() || isOpponentPiece(piece, target);
     }
 
-    private boolean isOpponentPiece(Pieces piece, Pieces target) {
-        boolean pieceIsWhite = piece.name().startsWith("WHITE");
-        boolean targetIsWhite = target.name().startsWith("WHITE");
-        if (target == Pieces.EMPTY || piece == Pieces.EMPTY) return false;
-        return pieceIsWhite != targetIsWhite;
+    boolean isOpponentPiece(Pieces piece, Pieces target) {
+        if (target.isEmpty() || piece.isEmpty()) return false;
+        return piece.isWhite() != target.isWhite();
     }
 
     private boolean isOpponentPawn(Pieces piece, Pieces target) {
         return isOpponentPiece(piece, target) && (target == Pieces.WHITE_PAWN || target == Pieces.BLACK_PAWN);
     }
 
-    private boolean isValidSquare(int rank, int file) {
+    boolean isValidSquare(int rank, int file) {
         return rank >= 0 && rank < 8 && file >= 0 && file < 8;
     }
 }
